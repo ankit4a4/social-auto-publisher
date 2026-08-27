@@ -58,6 +58,7 @@ async function publishOne({ queueItem, website, platform, socialAccountId }) {
       result = await facebookService.publishToPage(accessToken, account.accountId, {
         title: queueItem.title,
         url: queueItem.url,
+        excerpt: queueItem.excerpt,
       });
     } else if (platform === 'INSTAGRAM') {
       result = await instagramService.publishToAccount(accessToken, account.accountId, {

@@ -85,12 +85,15 @@ async function getEligiblePages(userAccessToken) {
   }));
 }
 
-// Publishes a link post (article title + URL) to a Facebook Page's feed.
-async function publishToPage(pageAccessToken, pageId, { title, url }) {
+// Publishes a link post (article title + description + URL) to a Facebook
+// Page's feed. Facebook automatically pulls the preview image from the
+// article URL's og:image meta tag, so we don't need to upload it separately.
+async function publishToPage(pageAccessToken, pageId, { title, url, excerpt }) {
   try {
+    const message = excerpt ? `${title}\n\n${excerpt}` : title;
     const { data } = await axios.post(`${GRAPH_BASE}/${pageId}/feed`, null, {
       params: {
-        message: title,
+        message,
         link: url,
         access_token: pageAccessToken,
       },

@@ -51,7 +51,9 @@ async function publishOne({ queueItem, website, platform, socialAccountId }) {
     }
 
     const accessToken = decrypt(account.encryptedAccessToken);
-    const caption = `${queueItem.title}\n\n${queueItem.url}`;
+    const caption = queueItem.excerpt
+      ? `${queueItem.title}\n\n${queueItem.excerpt}\n\n${queueItem.url}`
+      : `${queueItem.title}\n\n${queueItem.url}`;
 
     let result;
     if (platform === 'FACEBOOK') {

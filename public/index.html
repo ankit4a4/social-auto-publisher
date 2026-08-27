@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Social Auto Publisher</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./css/style.css" />
+</head>
+<body>
+  <div class="app-shell">
+
+    <!-- ================= Left Sidebar ================= -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <span class="mark">SA</span>
+        <span>Social Auto Publisher</span>
+      </div>
+
+      <div class="sidebar-dashboard" id="sidebarDashboard">
+        <div class="dash-stat">
+          <strong id="dashWebsiteCount">0</strong>
+          <span>Websites Added</span>
+        </div>
+      </div>
+
+      <button class="btn btn-primary btn-block" id="openAddWebsite">+ Add Website</button>
+
+      <button class="nav-item" id="navDashboard">
+        <span>&#9635;</span> Dashboard
+      </button>
+
+      <div class="sidebar-list-label">Your Websites</div>
+      <div class="sidebar-website-list" id="websiteList">
+        <div class="empty-state">Loading websites...</div>
+      </div>
+
+      <div class="sidebar-bottom">
+        <span id="userEmail"></span>
+        <button class="btn btn-secondary btn-sm" id="logoutBtn">Logout</button>
+      </div>
+    </aside>
+
+    <!-- ================= Main content ================= -->
+    <main class="main-content">
+
+      <!-- ---- Dashboard: card grid of every website ---- -->
+      <div id="dashboardView">
+        <section class="section dashboard-head">
+          <div>
+            <h2>Dashboard</h2>
+            <div class="section-sub">Sabhi websites ka live status - daily posts, gap, aur next post kab hoga.</div>
+          </div>
+        </section>
+
+        <div id="dashboardEmpty" class="empty-state-big hidden">
+          <h2>Koi website add nahi hai</h2>
+          <div class="section-sub">"+ Add Website" se pehli website jodo.</div>
+        </div>
+
+        <div class="dashboard-grid" id="dashboardGrid"></div>
+      </div>
+
+      <!-- ---- Detail view: one selected website ---- -->
+      <div id="detailView" class="hidden">
+
+      <div id="noWebsiteSelected" class="empty-state-big hidden">
+        <h2>Koi website select karo</h2>
+        <div class="section-sub">Left sidebar se apni website choose karo, ya "+ Add Website" se nayi jodo. Har website ke apne alag social media accounts yahin se connect honge.</div>
+      </div>
+
+      <div id="websiteDetail" class="hidden">
+        <button class="btn btn-secondary btn-sm back-to-dash" id="backToDashboard">&larr; Dashboard</button>
+
+        <!-- ---- Website header ---- -->
+        <section class="section detail-header">
+          <div class="info">
+            <h2 id="detailName">-</h2>
+            <div class="url" id="detailUrl"></div>
+            <div class="meta" id="detailMeta"></div>
+            <div class="settings-summary" id="detailSettingsSummary"></div>
+            <div id="detailLastError" class="hint hidden" style="color:var(--danger);margin-top:6px;"></div>
+          </div>
+          <div class="actions">
+            <button class="btn btn-secondary btn-sm" id="detailEditBtn">Edit</button>
+            <button class="btn btn-primary btn-sm" id="detailStartBtn">Start Auto Posting</button>
+            <button class="btn btn-secondary btn-sm hidden" id="detailStopBtn">Stop Auto Posting</button>
+            <button class="btn btn-danger btn-sm" id="detailDeleteBtn">Delete</button>
+          </div>
+        </section>
+
+        <!-- ---- Social accounts for THIS website ---- -->
+        <section class="section">
+          <div class="section-head">
+            <div>
+              <h2>Social Media Accounts</h2>
+              <div class="section-sub">Is website ke articles kaha auto-publish honge - har website ka apna alag account.</div>
+            </div>
+          </div>
+
+          <div id="socialConnectAlert" class="alert alert-error hidden"></div>
+
+          <div class="social-grid" id="detailSocialGrid"></div>
+
+          <div id="socialPickerWrap"></div>
+        </section>
+
+        <!-- ---- Current Status (this website) ---- -->
+        <section class="section">
+          <div class="section-head">
+            <div>
+              <h2>Current Status</h2>
+              <div class="section-sub">Live view of what the scheduler is doing right now.</div>
+            </div>
+            <button class="btn btn-secondary btn-sm" id="refreshStatusBtn">Refresh</button>
+          </div>
+
+          <div class="next-post-banner" id="detailNextPostBanner"></div>
+
+          <div id="detailStatus">
+            <div class="empty-state">Loading status...</div>
+          </div>
+        </section>
+
+        <!-- ---- Queue (this website) ---- -->
+        <section class="section">
+          <div class="section-head">
+            <div>
+              <h2>Queue</h2>
+              <div class="section-sub">Upcoming and recent articles for this website.</div>
+            </div>
+          </div>
+
+          <div id="detailQueueWrap">
+            <div class="empty-state">Nothing in the queue yet.</div>
+          </div>
+        </section>
+
+      </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ================= Add Website Wizard (3 steps) ================= -->
+  <div class="modal-overlay hidden" id="websiteModalOverlay">
+    <div class="modal modal-wide">
+      <div class="modal-head">
+        <h2 id="websiteModalTitle">Add Website</h2>
+        <button class="modal-close" id="closeWebsiteModal" aria-label="Close">&times;</button>
+      </div>
+
+      <div class="wizard-steps" id="wizardStepsIndicator">
+        <div class="wizard-step-dot active" data-step="1">1<span>WordPress</span></div>
+        <div class="wizard-step-dot" data-step="2">2<span>Posting Settings</span></div>
+        <div class="wizard-step-dot" data-step="3">3<span>Social Media</span></div>
+      </div>
+
+      <div id="websiteModalAlert" class="alert alert-error hidden"></div>
+
+      <!-- ---- Step 1: WordPress connection details ---- -->
+      <form id="websiteFormStep1" class="wizard-panel">
+        <div class="field">
+          <label for="websiteName">Website Name</label>
+          <input type="text" id="websiteName" placeholder="e.g. CEO India Magazine" required />
+        </div>
+        <div class="field">
+          <label for="websiteUrl">WordPress URL</label>
+          <input type="url" id="websiteUrl" placeholder="https://example.com" required />
+        </div>
+        <div class="field">
+          <label for="websiteUsername">WordPress Username</label>
+          <input type="text" id="websiteUsername" required />
+        </div>
+        <div class="field">
+          <label for="websiteAppPassword">WordPress Application Password</label>
+          <input type="password" id="websiteAppPassword" placeholder="xxxx xxxx xxxx xxxx" />
+          <div class="hint" id="appPasswordHint">Generate this from Users &rsaquo; Profile &rsaquo; Application Passwords in WordPress.</div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="cancelWebsiteModal">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="saveWebsiteBtn">Continue</button>
+        </div>
+      </form>
+
+      <!-- ---- Step 2: category / gap / limit / timezone ---- -->
+      <form id="websiteFormStep2" class="wizard-panel hidden">
+        <div class="settings-grid">
+          <div class="field">
+            <label for="wCategoryMode">Category</label>
+            <select id="wCategoryMode">
+              <option value="all">All categories</option>
+              <option value="category">Select category</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="wCategoryPicker">Which category</label>
+            <select id="wCategoryPicker" disabled>
+              <option value="">Select a category above first</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="wLatestArticleLimit">Latest articles to pick up</label>
+            <input type="number" id="wLatestArticleLimit" min="1" max="50" value="5" />
+          </div>
+
+          <div class="field">
+            <label for="wPostingGapMinutes">Posting gap</label>
+            <select id="wPostingGapMinutes">
+              <option value="15">15 minutes</option>
+              <option value="30">30 minutes</option>
+              <option value="60" selected>1 hour</option>
+              <option value="120">2 hours</option>
+              <option value="240">4 hours</option>
+              <option value="1440">24 hours</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="wDailyLimit">Daily post limit</label>
+            <input type="number" id="wDailyLimit" min="1" value="10" />
+          </div>
+
+          <div class="field">
+            <label for="wTimezone">Timezone</label>
+            <select id="wTimezone">
+              <option value="Asia/Kolkata">Asia/Kolkata</option>
+              <option value="UTC">UTC</option>
+              <option value="America/New_York">America/New_York</option>
+              <option value="America/Los_Angeles">America/Los_Angeles</option>
+              <option value="Europe/London">Europe/London</option>
+              <option value="Asia/Dubai">Asia/Dubai</option>
+              <option value="Asia/Singapore">Asia/Singapore</option>
+              <option value="Australia/Sydney">Australia/Sydney</option>
+            </select>
+          </div>
+
+          <div class="toggle-row">
+            <div>
+              <strong>Auto Posting</strong>
+              <div class="section-sub" style="margin-top:2px;">Abhi se scheduled posting shuru kar du?</div>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="wAutoPostingEnabled" />
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="wizardBackTo1">Back</button>
+          <button type="submit" class="btn btn-primary" id="saveStep2Btn">Continue</button>
+        </div>
+      </form>
+
+      <!-- ---- Step 3: connect social media (optional) ---- -->
+      <div id="wizardStep3" class="wizard-panel hidden">
+        <div class="section-sub" style="margin-bottom:12px;">
+          Is website ke articles kaha auto-publish honge - abhi connect karo ya baad me detail page se bhi kar sakte ho.
+        </div>
+        <div id="wizardSocialAlert" class="alert alert-error hidden"></div>
+        <div class="social-grid" id="wizardSocialGrid"></div>
+        <div id="wizardSocialPickerWrap"></div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="wizardFinishBtn">Done</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= Edit Website Modal ================= -->
+  <div class="modal-overlay hidden" id="editModalOverlay">
+    <div class="modal modal-wide">
+      <div class="modal-head">
+        <h2>Edit Website</h2>
+        <button class="modal-close" id="closeEditModal" aria-label="Close">&times;</button>
+      </div>
+
+      <div id="editModalAlert" class="alert alert-error hidden"></div>
+
+      <form id="editForm">
+        <div class="field">
+          <label for="editWebsiteName">Website Name</label>
+          <input type="text" id="editWebsiteName" required />
+        </div>
+        <div class="field">
+          <label for="editWebsiteUrl">WordPress URL</label>
+          <input type="url" id="editWebsiteUrl" required />
+        </div>
+        <div class="field">
+          <label for="editWebsiteUsername">WordPress Username</label>
+          <input type="text" id="editWebsiteUsername" required />
+        </div>
+        <div class="field">
+          <label for="editWebsiteAppPassword">WordPress Application Password</label>
+          <input type="password" id="editWebsiteAppPassword" placeholder="xxxx xxxx xxxx xxxx" />
+          <div class="hint">Leave blank to keep the current application password.</div>
+        </div>
+
+        <div class="settings-grid">
+          <div class="field">
+            <label for="editCategoryMode">Category</label>
+            <select id="editCategoryMode">
+              <option value="all">All categories</option>
+              <option value="category">Select category</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="editCategoryPicker">Which category</label>
+            <select id="editCategoryPicker" disabled>
+              <option value="">Select a category above first</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="editLatestArticleLimit">Latest articles to pick up</label>
+            <input type="number" id="editLatestArticleLimit" min="1" max="50" />
+          </div>
+          <div class="field">
+            <label for="editPostingGapMinutes">Posting gap</label>
+            <select id="editPostingGapMinutes">
+              <option value="15">15 minutes</option>
+              <option value="30">30 minutes</option>
+              <option value="60">1 hour</option>
+              <option value="120">2 hours</option>
+              <option value="240">4 hours</option>
+              <option value="1440">24 hours</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="editDailyLimit">Daily post limit</label>
+            <input type="number" id="editDailyLimit" min="1" />
+          </div>
+          <div class="field">
+            <label for="editTimezone">Timezone</label>
+            <select id="editTimezone">
+              <option value="Asia/Kolkata">Asia/Kolkata</option>
+              <option value="UTC">UTC</option>
+              <option value="America/New_York">America/New_York</option>
+              <option value="America/Los_Angeles">America/Los_Angeles</option>
+              <option value="Europe/London">Europe/London</option>
+              <option value="Asia/Dubai">Asia/Dubai</option>
+              <option value="Asia/Singapore">Asia/Singapore</option>
+              <option value="Australia/Sydney">Australia/Sydney</option>
+            </select>
+          </div>
+          <div class="toggle-row">
+            <div>
+              <strong>Auto Posting</strong>
+              <div class="section-sub" style="margin-top:2px;">Turn scheduled posting on or off.</div>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="editAutoPostingEnabled" />
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="cancelEditModal">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="saveEditBtn">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+</body>
+</html>

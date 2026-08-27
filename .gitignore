@@ -1,0 +1,34 @@
+# ---- Secrets / environment ----
+# NEVER commit this — it has your DB URI, JWT secret, encryption key,
+# admin password, and Meta/LinkedIn App IDs & Secrets
+.env
+.env.local
+.env.*.local
+
+# ---- Dependencies ----
+node_modules/
+
+# ---- Logs ----
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ---- OS files ----
+.DS_Store
+Thumbs.db
+
+# ---- Editor/IDE ----
+.vscode/
+.idea/
+*.swp
+
+# ---- Build/cache ----
+dist/
+build/
+.cache/
+
+# ---- Uploaded/generated files (if any get saved locally) ----
+uploads/
+tmp/
